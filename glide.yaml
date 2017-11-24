@@ -1,0 +1,8 @@
+package: github.com/pwillie/prometheus-es-adapter
+import:
+- package: gopkg.in/olivere/elastic.v5
+- package: github.com/davecgh/go-spew
+  subpackages:
+  - spew
+- package: github.com/google/uuid
+- package: github.com/namsral/flag
