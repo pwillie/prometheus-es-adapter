@@ -9,7 +9,7 @@ ENV GOROOT=/usr/local/go \
     GOBIN=/gopath/bin \
     PROJPATH=/gopath/src/github.com/pwillie/prometheus-es-adapter
 
-RUN apk add -U --no-progress build-base git glide
+RUN apk add -U -q --no-progress build-base git glide
 
 ADD . /gopath/src/github.com/pwillie/prometheus-es-adapter
 WORKDIR /gopath/src/github.com/pwillie/prometheus-es-adapter
@@ -33,4 +33,4 @@ WORKDIR /opt/prometheus-es-adapter/bin
 COPY --from=build-stage /gopath/src/github.com/pwillie/prometheus-es-adapter/bin/prometheus-es-adapter /opt/prometheus-es-adapter/bin/
 RUN chmod +x /opt/prometheus-es-adapter/bin/prometheus-es-adapter
 
-CMD /opt/prometheus-es-adapter/bin/prometheus-es-adapter
+ENTRYPOINT [ "/opt/prometheus-es-adapter/bin/prometheus-es-adapter" ]
