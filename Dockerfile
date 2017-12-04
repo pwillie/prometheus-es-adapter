@@ -9,12 +9,12 @@ ENV GOROOT=/usr/local/go \
     GOBIN=/gopath/bin \
     PROJPATH=/gopath/src/github.com/pwillie/prometheus-es-adapter
 
-RUN apk add -U --no-progress build-base git
+RUN apk add -U --no-progress build-base git glide
 
 ADD . /gopath/src/github.com/pwillie/prometheus-es-adapter
 WORKDIR /gopath/src/github.com/pwillie/prometheus-es-adapter
 
-RUN make build-alpine
+RUN make get-deps build-alpine
 
 # Final Stage
 FROM alpine:latest
