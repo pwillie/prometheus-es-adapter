@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
+
+	"go.uber.org/zap"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
@@ -12,19 +13,27 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/pwillie/prometheus-es-adapter/lib/elasticsearch"
+	"github.com/pwillie/prometheus-es-adapter/lib/logger"
 )
 
 // Main entry point.
 func main() {
 	var (
-		url         = flag.String("esurl", "http://localhost:9200", "Elasticsearch URL.")
-		index       = flag.String("esindex", "prom_storage", "Index name.")
-		listen      = flag.String("listen", ":8080", "TCP network address to listen.")
-		workers     = flag.Int("workers", 0, "Number of batch workers.")
-		versionFlag = flag.Bool("version", false, "Version")
-		// debug       = flag.Bool("debug", false, "Debug logging")
+		url           = flag.String("es_url", "http://localhost:9200", "Elasticsearch URL.")
+		workers       = flag.Int("es_workers", 0, "Number of batch workers.")
+		batchCount    = flag.Int("es_batch_count", 1000, "Max items for bulk Elasticsearch insert operation")
+		batchSize     = flag.Int("es_batch_size", 4096, "Max size in bytes for bulk Elasticsearch insert operation")
+		batchInterval = flag.Int("es_batch_interval", 10, "Max period in seconds between bulk Elasticsearch insert operations")
+		indexMaxAge   = flag.String("es_index_max_age", "7d", "Max age of Elasticsearch index before rollover")
+		indexMaxDocs  = flag.Int64("es_index_max_docs", 1000000, "Max number of docs in Elasticsearch index before rollover")
+		listen        = flag.String("listen", ":8080", "TCP network address to listen.")
+		statsEnabled  = flag.Bool("stats", true, "Expose Prometheus metrics endpoint")
+		versionFlag   = flag.Bool("version", false, "Version")
+		debug         = flag.Bool("debug", false, "Debug logging")
 	)
 	flag.Parse()
+
+	log := logger.NewLogger(*debug)
 
 	if *versionFlag {
 		fmt.Println("Git Commit:", GitCommit)
@@ -35,44 +44,53 @@ func main() {
 		return
 	}
 
+	log.Info(fmt.Sprintf("Starting commit: %+v, version: %+v, prerelease: %+v",
+		GitCommit, Version, VersionPrerelease))
+
 	if *url == "" {
 		log.Fatal("missing url")
 	}
-	if *index == "" {
-		log.Fatal("missing index name")
-	}
 
 	elastic, err := elasticsearch.NewAdapter(
+		log,
 		elasticsearch.SetEsUrl(*url),
-		elasticsearch.SetEsIndex(*index),
+		elasticsearch.SetEsIndexMaxAge(*indexMaxAge),
+		elasticsearch.SetEsIndexMaxDocs(*indexMaxDocs),
 		elasticsearch.SetWorkers(*workers),
+		elasticsearch.SetBatchCount(*batchCount),
+		elasticsearch.SetBatchSize(*batchSize),
+		elasticsearch.SetBatchInterval(*batchInterval),
+		elasticsearch.SetStats(*statsEnabled),
 	)
 	if err != nil {
-		log.Println("Unable to create elasticsearch adapter:", err.Error())
-		return
+		log.Fatal("Unable to create elasticsearch adapter:", zap.Error(err))
 	}
 	defer elastic.Close()
 
 	http.Handle("/metrics", prometheus.Handler())
 
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	http.HandleFunc("/write", func(w http.ResponseWriter, r *http.Request) {
 		compressed, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Println("msg", "Read error", "err", err.Error())
+			log.Error("Read error", zap.Error(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		reqBuf, err := snappy.Decode(nil, compressed)
 		if err != nil {
-			log.Println("msg", "Decode error", "err", err.Error())
+			log.Error("Decode error", zap.Error(err))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		var req prompb.WriteRequest
 		if err := proto.Unmarshal(reqBuf, &req); err != nil {
-			log.Println("msg", "Unmarshal error", "err", err.Error())
+			log.Error("Unmarshal error", zap.Error(err))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -80,28 +98,28 @@ func main() {
 		elastic.Write(req.Timeseries)
 		if err != nil {
 			// log.Println("msg", "Error sending samples to remote storage", "err", err, "storage", "num_samples", len(samples))
-			log.Println("msg", "Error sending samples to remote storage", "err", err, "storage", "num_samples")
+			log.Error("Error sending samples to remote storage", zap.Error(err))
 		}
 	})
 
 	http.HandleFunc("/read", func(w http.ResponseWriter, r *http.Request) {
 		compressed, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Println("msg", "Read error", "err", err.Error())
+			log.Error("Read error", zap.Error(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		reqBuf, err := snappy.Decode(nil, compressed)
 		if err != nil {
-			log.Println("msg", "Decode error", "err", err.Error())
+			log.Error("Decode error", zap.Error(err))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		var req prompb.ReadRequest
 		if err := proto.Unmarshal(reqBuf, &req); err != nil {
-			log.Println("msg", "Unmarshal error", "err", err.Error())
+			log.Error("Unmarshal error", zap.Error(err))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -109,7 +127,7 @@ func main() {
 		// var resp *prompb.ReadResponse
 		resp, err := elastic.Read(req.Queries)
 		if err != nil {
-			log.Println("msg", "Error executing query", "query", req, "storage", "err", err)
+			log.Error("Error executing query", zap.String("query", req.String()), zap.Error(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -130,5 +148,6 @@ func main() {
 		}
 	})
 
+	log.Info(fmt.Sprintf("Listening on %+v", *listen))
 	http.ListenAndServe(*listen, nil)
 }

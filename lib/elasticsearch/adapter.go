@@ -3,42 +3,26 @@ package elasticsearch
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"log"
+	"fmt"
 	"math"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/prompb"
+	"go.uber.org/zap"
 	elastic "gopkg.in/olivere/elastic.v5"
 )
 
 const sampleType = "sample"
-const indexMapping = `{
-	"mappings":{
-		"sample": {
-			"dynamic_templates": [
-				{
-					"strings": {
-						"match_mapping_type": "string",
-						"path_match": "label.*",
-						"mapping": {
-							"type": "keyword"
-						}
-					}
-				}
-			]
-		}
-	}
-}`
 
 type Sample struct {
 	Labels    model.Metric `json:"label"`
 	Value     float64      `json:"value"`
 	Timestamp int64        `json:"timestamp"`
 }
+
+var log *zap.Logger
 
 // An AdapterOptionFunc is a function that configures a Client.
 // It is used in NewClient.
@@ -50,14 +34,16 @@ type Adapter struct {
 	batchCount    int
 	batchSize     int
 	batchInterval int
-	esIndex       string
-	esUrl         string
+	indexMaxAge   string
+	indexMaxDocs  int64
+	esURL         string
 	workers       int
 	stats         bool
 }
 
 // NewAdapter creates and returns a new elasticsearch adapter
-func NewAdapter(options ...AdapterOptionFunc) (*Adapter, error) {
+func NewAdapter(logger *zap.Logger, options ...AdapterOptionFunc) (*Adapter, error) {
+	log = logger
 	a := &Adapter{
 		batchCount:    1000,
 		batchSize:     4096,
@@ -72,13 +58,12 @@ func NewAdapter(options ...AdapterOptionFunc) (*Adapter, error) {
 	}
 
 	client, err := elastic.NewClient(
-		elastic.SetURL(a.esUrl),
+		elastic.SetURL(a.esURL),
 		elastic.SetBasicAuth("elastic", "changeme"),
 		elastic.SetSniff(false),
 	)
 	if err != nil {
-		log.Println("Failed to create elastic client")
-		log.Fatal(err)
+		log.Fatal("Failed to create elastic client", zap.Error(err))
 	}
 	defer client.Stop()
 
@@ -86,7 +71,8 @@ func NewAdapter(options ...AdapterOptionFunc) (*Adapter, error) {
 
 	ctx := context.Background()
 
-	a.ensureIndex(ctx, &a.esIndex)
+	a.ensureIndex(ctx)
+	a.rolloverIndex(ctx)
 
 	b, err := client.BulkProcessor().
 		Workers(a.workers).                                          // # of workers
@@ -126,16 +112,23 @@ func SetBatchInterval(seconds int) AdapterOptionFunc {
 	}
 }
 
-func SetEsIndex(index string) AdapterOptionFunc {
+func SetEsUrl(url string) AdapterOptionFunc {
 	return func(a *Adapter) error {
-		a.esIndex = index
+		a.esURL = url
 		return nil
 	}
 }
 
-func SetEsUrl(url string) AdapterOptionFunc {
+func SetEsIndexMaxAge(age string) AdapterOptionFunc {
 	return func(a *Adapter) error {
-		a.esUrl = url
+		a.indexMaxAge = age
+		return nil
+	}
+}
+
+func SetEsIndexMaxDocs(docs int64) AdapterOptionFunc {
+	return func(a *Adapter) error {
+		a.indexMaxDocs = docs
 		return nil
 	}
 }
@@ -159,7 +152,7 @@ func SetWorkers(workers int) AdapterOptionFunc {
 func (a *Adapter) after(id int64, requests []elastic.BulkableRequest, response *elastic.BulkResponse, err error) {
 	for _, i := range response.Items {
 		if i["index"].Status != 201 {
-			spew.Dump(i["index"])
+			log.Error(fmt.Sprintf("%+v", i["index"]))
 		}
 	}
 }
@@ -177,7 +170,7 @@ func (a *Adapter) Write(req []*prompb.TimeSeries) error {
 		for _, s := range ts.Samples {
 			v := float64(s.Value)
 			if math.IsNaN(v) || math.IsInf(v, 0) {
-				// TODO: debug maybe? log.Println("invalid value, skipping sample", "value", v, "sample", s)
+				log.Debug(fmt.Sprintf("invalid value %+v, skipping sample %+v", v, s))
 				continue
 			}
 			sample := Sample{
@@ -187,7 +180,7 @@ func (a *Adapter) Write(req []*prompb.TimeSeries) error {
 			}
 			r := elastic.
 				NewBulkIndexRequest().
-				Index(a.esIndex).
+				Index(activeIndexAlias).
 				Type(sampleType).
 				Doc(sample)
 			a.b.Add(r)
@@ -197,7 +190,6 @@ func (a *Adapter) Write(req []*prompb.TimeSeries) error {
 }
 
 func (a *Adapter) Read(req []*prompb.Query) ([]*prompb.QueryResult, error) {
-	spew.Dump(req)
 	results := make([]*prompb.QueryResult, 0, len(req))
 	for _, q := range req {
 		command := a.buildCommand(q)
@@ -206,7 +198,7 @@ func (a *Adapter) Read(req []*prompb.Query) ([]*prompb.QueryResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("Query returned %d results", resp.Hits.TotalHits)
+		log.Debug("Query returned results", zap.Int64("hits", resp.Hits.TotalHits))
 		ts, err := createTimeseries(resp.Hits)
 		if err != nil {
 			return nil, err
@@ -227,7 +219,7 @@ func (a *Adapter) buildCommand(q *prompb.Query) *elastic.SearchService {
 		// case prompb.LabelMatcher_RE:
 		// case prompb.LabelMatcher_NRE:
 		default:
-			log.Panicf("unknown match type %v", m.Type)
+			log.Panic("unknown match", zap.String("type", m.Type.String()))
 		}
 	}
 
@@ -235,9 +227,9 @@ func (a *Adapter) buildCommand(q *prompb.Query) *elastic.SearchService {
 
 	// ss, _ := elastic.NewSearchSource().Query(query).Source()
 	// data, _ := json.Marshal(ss)
-	// fmt.Printf("%s", string(data))
+	// log.Debug("es query", zap.String("data", string(data)))
 
-	service := a.c.Search().Index(a.esIndex).Type(sampleType).Query(query).Size(1000).Sort("timestamp", true)
+	service := a.c.Search().Index(searchIndexAlias).Type(sampleType).Query(query).Size(1000).Sort("timestamp", true)
 	return service
 }
 
@@ -246,7 +238,7 @@ func createTimeseries(results *elastic.SearchHits) ([]*prompb.TimeSeries, error)
 	for _, r := range results.Hits {
 		var s Sample
 		if err := json.Unmarshal([]byte(*r.Source), &s); err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to unmarshal sample", zap.Error(err))
 		}
 		fingerprint := s.Labels.Fingerprint().String()
 
@@ -274,24 +266,5 @@ func createTimeseries(results *elastic.SearchHits) ([]*prompb.TimeSeries, error)
 	for _, s := range tsMap {
 		ret = append(ret, s)
 	}
-	spew.Dump(ret)
 	return ret, nil
-}
-
-// ensureIndex creates the index in Elasticsearch.
-func (a *Adapter) ensureIndex(ctx context.Context, index *string) error {
-	if *index == "" {
-		return errors.New("no index name")
-	}
-	exists, err := a.c.IndexExists(*index).Do(ctx)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		_, err = a.c.CreateIndex(*index).BodyString(indexMapping).Do(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

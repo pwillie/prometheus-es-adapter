@@ -1,5 +1,5 @@
-hash: fa101c1e6474f2c1f8ae6a29d21ba92a6cb82d5becf7488708e2815c15bd1550
-updated: 2017-12-01T17:18:16.707498743+11:00
+hash: 579e89f6bf2420fccfd58a408c904a9c74d80b7263dfbe777428acedfcc9626e
+updated: 2017-12-12T10:47:18.491134+11:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -63,6 +63,18 @@ imports:
   version: 2c2702e22bebdb86061d005853cf22bcdf425ddb
   subpackages:
   - prompb
+- name: go.uber.org/atomic
+  version: 8474b86a5a6f79c443ce4b2992817ff32cf208b8
+- name: go.uber.org/multierr
+  version: 3c4937480c32f4c13a875a1829af76c98ca3d40a
+- name: go.uber.org/zap
+  version: 35aad584952c3e7020db7b839f6b102de6271f89
+  subpackages:
+  - buffer
+  - internal/bufferpool
+  - internal/color
+  - internal/exit
+  - zapcore
 - name: golang.org/x/net
   version: 5d0d7096b5f2ef7ba83f319c07ef63989a1c6f91
   subpackages:

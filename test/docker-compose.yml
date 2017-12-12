@@ -33,7 +33,20 @@ services:
     image: prom/prometheus
     ports:
       - '9090:9090'
-    # command: '--storage.tsdb.retention=10m'
+    # command:
+    #   - --config.file=/etc/prometheus/prometheus.yml
+    #   - --storage.tsdb.path=/prometheus
+    #   - --storage.tsdb.retention=1d
+    #   - --web.console.libraries=/usr/share/prometheus/console_libraries
+    #   - --web.console.templates=/usr/share/prometheus/consoles
     # command: '-h'
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  prometheus-es-adapter:
+    build:
+      context: ..
+    ports:
+      - '8080:8080'
+    environment:
+      ES_URL: http://elasticsearch:9200
