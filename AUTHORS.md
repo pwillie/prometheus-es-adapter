@@ -6,4 +6,4 @@
 
 ## Contributors
 
-None yet. Why not be the first?
+- Yanick Cyr [ycyr](https://github.com/ycyr)
