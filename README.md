@@ -9,6 +9,8 @@ A read and write adapter for prometheus persistent storage
 | Env Variables     | Default               | Description                                                        |
 | ----------------- | --------------------- | ------------------------------------------------------------------ |
 | ES_URL            | http://localhost:9200 | Elasticsearch URL                                                  |
+| ES_USER           |                       | Elasticsearch User                                                 |
+| ES_PWD            |                       | Elasticsearch User Password                                        |
 | ES_WORKERS        | 0                     | Number of batch workers                                            |
 | ES_BATCH_COUNT    | 1000                  | Max items for bulk Elasticsearch insert operation                  |
 | ES_BATCH_SIZE     | 4096                  | Max size in bytes for bulk Elasticsearch insert operation          |
