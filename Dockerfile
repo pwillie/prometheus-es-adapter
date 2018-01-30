@@ -2,17 +2,17 @@
 FROM golang:alpine AS build-stage
 
 LABEL app="build-prometheus-es-adapter"
-LABEL REPO="https://github.com/pwillie/prometheus-es-adapter"
+LABEL REPO="https://github.com/ycyr/prometheus-es-adapter"
 
 ENV GOROOT=/usr/local/go \
     GOPATH=/gopath \
     GOBIN=/gopath/bin \
-    PROJPATH=/gopath/src/github.com/pwillie/prometheus-es-adapter
+    PROJPATH=/gopath/src/github.com/ycyr/prometheus-es-adapter
 
 RUN apk add -U -q --no-progress build-base git glide
 
-ADD . /gopath/src/github.com/pwillie/prometheus-es-adapter
-WORKDIR /gopath/src/github.com/pwillie/prometheus-es-adapter
+ADD . /gopath/src/github.com/ycyr/prometheus-es-adapter
+WORKDIR /gopath/src/github.com/ycyr/prometheus-es-adapter
 
 RUN make get-deps build-alpine
 
@@ -21,7 +21,7 @@ FROM alpine:latest
 
 ARG GIT_COMMIT
 ARG VERSION
-LABEL REPO="https://github.com/pwillie/prometheus-es-adapter"
+LABEL REPO="https://github.com/ycyr/prometheus-es-adapter"
 LABEL GIT_COMMIT=$GIT_COMMIT
 LABEL VERSION=$VERSION
 
