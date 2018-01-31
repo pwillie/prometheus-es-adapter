@@ -5,6 +5,10 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
   - job_name: 'prometheus-es-adapter'
     static_configs:
       - targets: ['prometheus-es-adapter:8080']
