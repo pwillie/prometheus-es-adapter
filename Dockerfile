@@ -30,7 +30,7 @@ ENV PATH=$PATH:/opt/prometheus-es-adapter/bin
 
 WORKDIR /opt/prometheus-es-adapter/bin
 
-COPY --from=build-stage /gopath/src/github.com/pwillie/prometheus-es-adapter/bin/prometheus-es-adapter /opt/prometheus-es-adapter/bin/
+COPY --from=build-stage /gopath/src/github.com/ycyr/prometheus-es-adapter/bin/prometheus-es-adapter /opt/prometheus-es-adapter/bin/
 RUN chmod +x /opt/prometheus-es-adapter/bin/prometheus-es-adapter
 
 ENTRYPOINT [ "/opt/prometheus-es-adapter/bin/prometheus-es-adapter" ]
