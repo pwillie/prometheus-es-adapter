@@ -1,4 +1,4 @@
-package: github.com/pwillie/prometheus-es-adapter
+package: github.com/ycyr/prometheus-es-adapter
 import:
 - package: gopkg.in/olivere/elastic.v5
 - package: github.com/google/uuid
