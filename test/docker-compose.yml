@@ -1,14 +1,13 @@
 version: '3.3'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.0.0
+    image: docker.elastic.co/elasticsearch/elasticsearch-platinum:6.1.3
     ports:
       - '9200:9200'
       - '9300:9300'
     environment:
       ES_NODE_NAME: elasticsearch
-      XPACK_MONITORING_ENABLED: 'false'
-      XPACK_SECURITY_ENABLED: 'false'
+      ELASTIC_PASSWORD: MagicWord
       discovery.type: single-node
 
   ui-cerebro:
@@ -21,13 +20,15 @@ services:
       ELASTICSEARCH_HOST: http://elasticsearch:9200
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:6.0.0
+    image: docker.elastic.co/kibana/kibana:6.1.3
     links:
       - elasticsearch
     ports:
       - '5601:5601'
     environment:
-      ELASTICSEARCH_URL: http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=MagicWord
 
   prometheus:
     image: prom/prometheus
@@ -49,4 +50,20 @@ services:
     ports:
       - '8080:8080'
     environment:
-      ES_URL: http://elasticsearch:9200
+      - ES_URL=http://elasticsearch:9200
+      - ES_USER=elastic
+      - ES_PWD=MagicWord
+
+  node-exporter:
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - 9100:9100
