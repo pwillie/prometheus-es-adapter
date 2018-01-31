@@ -20,8 +20,8 @@ import (
 func main() {
 	var (
 		url           = flag.String("es_url", "http://localhost:9200", "Elasticsearch URL.")
-		user          = flag.String("es_user", "elastic", "Elasticsearch User.")
-                pass          = flag.String("es_pwd", "changeme", "Elasticsearch User Password.")
+		user          = flag.String("es_user", "", "Elasticsearch User.")
+                pass          = flag.String("es_pwd", "", "Elasticsearch User Password.")
 		workers       = flag.Int("es_workers", 0, "Number of batch workers.")
 		batchCount    = flag.Int("es_batch_count", 1000, "Max items for bulk Elasticsearch insert operation")
 		batchSize     = flag.Int("es_batch_size", 4096, "Max size in bytes for bulk Elasticsearch insert operation")
