@@ -12,8 +12,8 @@ import (
 	"github.com/namsral/flag"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/prompb"
-	"github.com/ycyr/prometheus-es-adapter/lib/elasticsearch"
-	"github.com/ycyr/prometheus-es-adapter/lib/logger"
+	"github.com/pwillie/prometheus-es-adapter/lib/elasticsearch"
+	"github.com/pwillie/prometheus-es-adapter/lib/logger"
 )
 
 // Main entry point.
