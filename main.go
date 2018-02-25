@@ -57,7 +57,7 @@ func main() {
 		log,
 		elasticsearch.SetEsUrl(*url),
 		elasticsearch.SetEsUser(*user),
-                elasticsearch.SetEsPwd(*pass),
+		elasticsearch.SetEsPassword(*pass),
 		elasticsearch.SetEsIndexMaxAge(*indexMaxAge),
 		elasticsearch.SetEsIndexMaxDocs(*indexMaxDocs),
 		elasticsearch.SetWorkers(*workers),

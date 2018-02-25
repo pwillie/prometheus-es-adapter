@@ -38,7 +38,7 @@ type Adapter struct {
 	indexMaxDocs  int64
 	esURL         string
 	esUser        string
-        esPwd         string
+	esPassword    string
 	workers       int
 	stats         bool
 }
@@ -61,7 +61,7 @@ func NewAdapter(logger *zap.Logger, options ...AdapterOptionFunc) (*Adapter, err
 
 	client, err := elastic.NewClient(
 		elastic.SetURL(a.esURL),
-		elastic.SetBasicAuth(a.esUser, a.esPwd),
+		elastic.SetBasicAuth(a.esUser, a.esPassword),
 		elastic.SetSniff(false),
 	)
 	if err != nil {
@@ -128,9 +128,9 @@ func SetEsUser(user string) AdapterOptionFunc {
         }
 }
 
- func SetEsPwd(pass string) AdapterOptionFunc {
+ func SetEsPassword(pass string) AdapterOptionFunc {
         return func(a *Adapter) error {
-                a.esPwd = pass
+                a.esPassword = pass
                 return nil
         }
 }
