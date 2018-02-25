@@ -52,7 +52,7 @@ services:
     environment:
       - ES_URL=http://elasticsearch:9200
       - ES_USER=elastic
-      - ES_PWD=MagicWord
+      - ES_PASSWORD=MagicWord
 
   node-exporter:
     image: prom/node-exporter
