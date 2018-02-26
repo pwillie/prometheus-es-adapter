@@ -37,6 +37,8 @@ type Adapter struct {
 	indexMaxAge   string
 	indexMaxDocs  int64
 	esURL         string
+	esUser        string
+	esPassword    string
 	workers       int
 	stats         bool
 }
@@ -59,7 +61,7 @@ func NewAdapter(logger *zap.Logger, options ...AdapterOptionFunc) (*Adapter, err
 
 	client, err := elastic.NewClient(
 		elastic.SetURL(a.esURL),
-		elastic.SetBasicAuth("elastic", "changeme"),
+		elastic.SetBasicAuth(a.esUser, a.esPassword),
 		elastic.SetSniff(false),
 	)
 	if err != nil {
@@ -117,6 +119,20 @@ func SetEsUrl(url string) AdapterOptionFunc {
 		a.esURL = url
 		return nil
 	}
+}
+
+func SetEsUser(user string) AdapterOptionFunc {
+        return func(a *Adapter) error {
+                a.esUser = user
+                return nil
+        }
+}
+
+ func SetEsPassword(pass string) AdapterOptionFunc {
+        return func(a *Adapter) error {
+                a.esPassword = pass
+                return nil
+        }
 }
 
 func SetEsIndexMaxAge(age string) AdapterOptionFunc {
