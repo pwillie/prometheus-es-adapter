@@ -227,7 +227,8 @@ func (a *Adapter) Read(req []*prompb.Query) ([]*prompb.QueryResult, error) {
 func (a *Adapter) buildCommand(q *prompb.Query) *elastic.SearchService {
 
 	query := elastic.NewBoolQuery()
-	for _, m := range q.Matchers {
+//  Not sure if it is useful 
+/*	for _, m := range q.Matchers {
 		switch m.Type {
 		case prompb.LabelMatcher_EQ:
 			query = query.Filter(elastic.NewTermQuery("label."+m.Name, m.Value))
@@ -238,7 +239,7 @@ func (a *Adapter) buildCommand(q *prompb.Query) *elastic.SearchService {
 			log.Panic("unknown match", zap.String("type", m.Type.String()))
 		}
 	}
-
+*/
 	query = query.Filter(elastic.NewRangeQuery("timestamp").Gte(q.StartTimestampMs).Lte(q.EndTimestampMs))
 
 	// ss, _ := elastic.NewSearchSource().Query(query).Source()
