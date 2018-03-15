@@ -31,7 +31,7 @@ services:
       - ELASTICSEARCH_PASSWORD=MagicWord
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v2.1.0
     ports:
       - '9090:9090'
     # command:
