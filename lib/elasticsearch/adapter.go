@@ -233,7 +233,7 @@ func (a *Adapter) buildCommand(q *prompb.Query) *elastic.SearchService {
 			query = query.Filter(elastic.NewTermQuery("label."+m.Name, m.Value))
 		// case prompb.LabelMatcher_NEQ:
 		case prompb.LabelMatcher_RE:
-		    query = query.Filter(elastic.NewRegexpQuery("label."+m.Name, m.Value))
+		        query = query.Filter(elastic.NewRegexpQuery("label."+m.Name, m.Value))
 		// case prompb.LabelMatcher_NRE:
 		default:
 			log.Panic("unknown match", zap.String("type", m.Type.String()))
