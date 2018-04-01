@@ -21,9 +21,9 @@ const activeIndexTemplate = `{
 	},
 	"mappings":{
 		"_default_": {
-      "_all": {
-        "enabled": false
-      },
+			"_all": {
+				"enabled": false
+			},
 			"properties": {
 				"timestamp": {
 					"type": "date",
