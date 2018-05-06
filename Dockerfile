@@ -25,6 +25,8 @@ LABEL REPO="https://github.com/pwillie/prometheus-es-adapter"
 LABEL GIT_COMMIT=$GIT_COMMIT
 LABEL VERSION=$VERSION
 
+RUN apk add -U ca-certificates
+
 # Because of https://github.com/docker/docker/issues/14914
 ENV PATH=$PATH:/opt/prometheus-es-adapter/bin
 
