@@ -225,15 +225,17 @@ func (a *Adapter) Read(req []*prompb.Query) ([]*prompb.QueryResult, error) {
 }
 
 func (a *Adapter) buildCommand(q *prompb.Query) *elastic.SearchService {
-
 	query := elastic.NewBoolQuery()
 	for _, m := range q.Matchers {
 		switch m.Type {
 		case prompb.LabelMatcher_EQ:
 			query = query.Filter(elastic.NewTermQuery("label."+m.Name, m.Value))
-		// case prompb.LabelMatcher_NEQ:
-		// case prompb.LabelMatcher_RE:
-		// case prompb.LabelMatcher_NRE:
+		case prompb.LabelMatcher_NEQ:
+			query = query.MustNot(elastic.NewTermQuery("label."+m.Name, m.Value))
+		case prompb.LabelMatcher_RE:
+			query = query.Filter(elastic.NewRegexpQuery("label."+m.Name, m.Value))
+		case prompb.LabelMatcher_NRE:
+			query = query.MustNot(elastic.NewRegexpQuery("label."+m.Name, m.Value))
 		default:
 			log.Panic("unknown match", zap.String("type", m.Type.String()))
 		}
