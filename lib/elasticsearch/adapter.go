@@ -40,6 +40,7 @@ type Adapter struct {
 	esUser        string
 	esPassword    string
 	workers       int
+	sniff         bool
 	stats         bool
 }
 
@@ -57,7 +58,7 @@ func NewAdapter(logger *zap.Logger, options ...AdapterOptionFunc) (*Adapter, err
 	client, err := elastic.NewClient(
 		elastic.SetURL(a.esURL),
 		elastic.SetBasicAuth(a.esUser, a.esPassword),
-		elastic.SetSniff(false),
+		elastic.SetSniff(a.sniff),
 	)
 	if err != nil {
 		log.Fatal("Failed to create elastic client", zap.Error(err))
@@ -139,6 +140,13 @@ func SetEsIndexMaxAge(age string) AdapterOptionFunc {
 func SetEsIndexMaxDocs(docs int64) AdapterOptionFunc {
 	return func(a *Adapter) error {
 		a.indexMaxDocs = docs
+		return nil
+	}
+}
+
+func SetSniff(enabled bool) AdapterOptionFunc {
+	return func(a *Adapter) error {
+		a.sniff = enabled
 		return nil
 	}
 }
