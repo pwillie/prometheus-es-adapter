@@ -122,17 +122,17 @@ func SetEsUrl(url string) AdapterOptionFunc {
 }
 
 func SetEsUser(user string) AdapterOptionFunc {
-        return func(a *Adapter) error {
-                a.esUser = user
-                return nil
-        }
+	return func(a *Adapter) error {
+		a.esUser = user
+		return nil
+	}
 }
 
- func SetEsPassword(pass string) AdapterOptionFunc {
-        return func(a *Adapter) error {
-                a.esPassword = pass
-                return nil
-        }
+func SetEsPassword(pass string) AdapterOptionFunc {
+	return func(a *Adapter) error {
+		a.esPassword = pass
+		return nil
+	}
 }
 
 func SetEsIndexMaxAge(age string) AdapterOptionFunc {
