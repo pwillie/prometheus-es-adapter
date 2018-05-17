@@ -153,5 +153,7 @@ func main() {
 	})
 
 	log.Info(fmt.Sprintf("Listening on %+v", *listen))
-	http.ListenAndServe(*listen, nil)
+	if err := http.ListenAndServe(*listen, nil); err != nil {
+		log.Fatal("http.ListenAndServe error", zap.Error(err))
+	}
 }
