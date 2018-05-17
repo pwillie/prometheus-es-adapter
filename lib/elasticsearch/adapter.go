@@ -46,12 +46,7 @@ type Adapter struct {
 // NewAdapter creates and returns a new elasticsearch adapter
 func NewAdapter(logger *zap.Logger, options ...AdapterOptionFunc) (*Adapter, error) {
 	log = logger
-	a := &Adapter{
-		batchCount:    1000,
-		batchSize:     4096,
-		batchInterval: 10,
-		stats:         true,
-	}
+	a := &Adapter{}
 	// Run the options
 	for _, option := range options {
 		if err := option(a); err != nil {
@@ -82,8 +77,7 @@ func NewAdapter(logger *zap.Logger, options ...AdapterOptionFunc) (*Adapter, err
 		BulkSize(a.batchSize).                                       // # of bytes in requests before committed
 		FlushInterval(time.Duration(a.batchInterval) * time.Second). // autocommit every # seconds
 		Stats(a.stats).                                              // gather statistics
-		// Before(b.before).                // call "before" before every commit
-		After(a.after). // call "after" after every commit
+		After(a.after).                                              // call "after" after every commit
 		Do(ctx)
 
 	a.b = b

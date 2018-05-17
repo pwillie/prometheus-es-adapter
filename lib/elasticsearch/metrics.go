@@ -1,6 +1,9 @@
 package elasticsearch
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -57,22 +60,18 @@ var (
 		nil,
 		nil,
 	)
-	// TODO: queued should be per worker...
 	queuedDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "queued"),
-		"Number of requests queued",
-		nil,
+		"Number of requests queued per worker",
+		[]string{"worker"},
 		nil,
 	)
-
-// TODO: need to instrument LastDuration per worker ??
-// i.e. LastDuration time.Duration // duration of last commit
-// ch <- prometheus.NewDesc(
-// 	prometheus.BuildFQName(namespace, "", "duration"),
-// 	"Duration of last commit",
-// 	nil,
-// 	nil,
-// )
+	durationDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "duration"),
+		"Duration of last commit per worker",
+		[]string{"worker"},
+		nil,
+	)
 )
 
 // Describe describes all the metrics exported by the memcached exporter. It
@@ -89,15 +88,13 @@ func (e *Adapter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- queuedDesc
 }
 
-// Collect fetches the statistics from the configured memcached server, and
+// Collect fetches the statistics from the elasticsearch bulk processor, and
 // delivers them as Prometheus metrics. It implements prometheus.Collector.
 func (a *Adapter) Collect(ch chan<- prometheus.Metric) {
 	stats := a.b.Stats()
 
 	var queued int64
-	for _, w := range stats.Workers {
-		queued += w.Queued
-	}
+	var duration time.Duration
 
 	ch <- prometheus.MustNewConstMetric(flushedDesc, prometheus.CounterValue, float64(stats.Flushed))
 	ch <- prometheus.MustNewConstMetric(committedDesc, prometheus.CounterValue, float64(stats.Committed))
@@ -107,5 +104,10 @@ func (a *Adapter) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(deletedDesc, prometheus.CounterValue, float64(stats.Deleted))
 	ch <- prometheus.MustNewConstMetric(succeededDesc, prometheus.CounterValue, float64(stats.Succeeded))
 	ch <- prometheus.MustNewConstMetric(failedDesc, prometheus.CounterValue, float64(stats.Failed))
-	ch <- prometheus.MustNewConstMetric(queuedDesc, prometheus.GaugeValue, float64(queued))
+	for i, w := range stats.Workers {
+		queued += w.Queued
+		duration += w.LastDuration
+		ch <- prometheus.MustNewConstMetric(queuedDesc, prometheus.GaugeValue, float64(queued), strconv.Itoa(i))
+		ch <- prometheus.MustNewConstMetric(durationDesc, prometheus.GaugeValue, float64(duration), strconv.Itoa(i))
+	}
 }

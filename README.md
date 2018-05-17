@@ -23,6 +23,8 @@ A read and write adapter for prometheus persistent storage
 
 ## Getting started
 
+Automated builds of Docker image are available at https://hub.docker.com/r/pwillie/prometheus-es-adapter/.
+
 ## Contributing
 
 Local development requires Go to be installed. On OS X with Homebrew you can just run `brew install go`.
