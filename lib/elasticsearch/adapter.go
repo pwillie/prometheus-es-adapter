@@ -40,6 +40,7 @@ type Adapter struct {
 	esUser        string
 	esPassword    string
 	workers       int
+	searchMaxDocs int
 	sniff         bool
 	stats         bool
 }
@@ -140,6 +141,13 @@ func SetEsIndexMaxAge(age string) AdapterOptionFunc {
 func SetEsIndexMaxDocs(docs int64) AdapterOptionFunc {
 	return func(a *Adapter) error {
 		a.indexMaxDocs = docs
+		return nil
+	}
+}
+
+func SetSearchMaxDocs(docs int) AdapterOptionFunc {
+	return func(a *Adapter) error {
+		a.searchMaxDocs = docs
 		return nil
 	}
 }
@@ -249,7 +257,7 @@ func (a *Adapter) buildCommand(q *prompb.Query) *elastic.SearchService {
 	// data, _ := json.Marshal(ss)
 	// log.Debug("es query", zap.String("data", string(data)))
 
-	service := a.c.Search().Index(searchIndexAlias).Type(sampleType).Query(query).Size(1000).Sort("timestamp", true)
+	service := a.c.Search().Index(searchIndexAlias).Type(sampleType).Query(query).Size(a.searchMaxDocs).Sort("timestamp", true)
 	return service
 }
 

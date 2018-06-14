@@ -28,6 +28,7 @@ func main() {
 		batchInterval = flag.Int("es_batch_interval", 10, "Max period in seconds between bulk Elasticsearch insert operations")
 		indexMaxAge   = flag.String("es_index_max_age", "7d", "Max age of Elasticsearch index before rollover")
 		indexMaxDocs  = flag.Int64("es_index_max_docs", 1000000, "Max number of docs in Elasticsearch index before rollover")
+		searchMaxDocs = flag.Int("es_search_max_docs", 1000, "Max number of docs returned for Elasticsearch search operation")
 		sniffEnabled  = flag.Bool("es_sniff", false, "Enable Elasticsearch sniffing")
 		listen        = flag.String("listen", ":8080", "TCP network address to listen.")
 		statsEnabled  = flag.Bool("stats", true, "Expose Prometheus metrics endpoint")
@@ -65,6 +66,7 @@ func main() {
 		elasticsearch.SetBatchCount(*batchCount),
 		elasticsearch.SetBatchSize(*batchSize),
 		elasticsearch.SetBatchInterval(*batchInterval),
+		elasticsearch.SetSearchMaxDocs(*searchMaxDocs),
 		elasticsearch.SetSniff(*sniffEnabled),
 		elasticsearch.SetStats(*statsEnabled),
 	)
