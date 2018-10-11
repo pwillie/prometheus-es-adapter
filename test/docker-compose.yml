@@ -1,13 +1,12 @@
 version: '3.3'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-platinum:6.1.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
     ports:
       - '9200:9200'
       - '9300:9300'
     environment:
       ES_NODE_NAME: elasticsearch
-      ELASTIC_PASSWORD: MagicWord
       discovery.type: single-node
 
   ui-cerebro:
@@ -20,15 +19,13 @@ services:
       ELASTICSEARCH_HOST: http://elasticsearch:9200
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:6.1.3
+    image: docker.elastic.co/kibana/kibana:6.4.2
     links:
       - elasticsearch
     ports:
       - '5601:5601'
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=MagicWord
 
   prometheus:
     image: prom/prometheus
@@ -51,8 +48,6 @@ services:
       - '8080:8080'
     environment:
       - ES_URL=http://elasticsearch:9200
-      - ES_USER=elastic
-      - ES_PASSWORD=MagicWord
 
   node-exporter:
     image: prom/node-exporter

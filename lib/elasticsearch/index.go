@@ -16,7 +16,6 @@ const activeIndexTemplate = `{
 		"number_of_replicas": 1
 	},
 	"aliases": {
-		"active-prom-metrics":  {},
 		"search-prom-metrics": {}
 	},
 	"mappings":{
@@ -28,6 +27,9 @@ const activeIndexTemplate = `{
 				"timestamp": {
 					"type": "date",
 					"format": "strict_date_optional_time||epoch_millis"
+				},
+				"value": {
+					"type": "double"
 				}
 			},
 			"dynamic_templates": [

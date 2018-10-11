@@ -25,7 +25,7 @@ A read and write adapter for prometheus persistent storage
 
 ## Requirements
 
-* 5.x or 6.x Elastisearch cluster
+* 6.x Elastisearch cluster
 
 ## Getting started
 
