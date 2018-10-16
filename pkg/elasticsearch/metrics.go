@@ -76,7 +76,7 @@ var (
 
 // Describe describes all the metrics exported by the memcached exporter. It
 // implements prometheus.Collector.
-func (e *Adapter) Describe(ch chan<- *prometheus.Desc) {
+func (svc *WriteService) Describe(ch chan<- *prometheus.Desc) {
 	ch <- flushedDesc
 	ch <- committedDesc
 	ch <- indexedDesc
@@ -86,12 +86,13 @@ func (e *Adapter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- succeededDesc
 	ch <- failedDesc
 	ch <- queuedDesc
+	ch <- durationDesc
 }
 
 // Collect fetches the statistics from the elasticsearch bulk processor, and
 // delivers them as Prometheus metrics. It implements prometheus.Collector.
-func (a *Adapter) Collect(ch chan<- prometheus.Metric) {
-	stats := a.b.Stats()
+func (svc *WriteService) Collect(ch chan<- prometheus.Metric) {
+	stats := svc.processor.Stats()
 
 	var queued int64
 	var duration time.Duration

@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:21ecc05d54814112cd9c3520a3402a56a61ddf69c8dc3e490bf2d69959bdeaf7"
+  name = "github.com/TV4/graceful"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "38c3c4980bed6ed0aac95529c2cded4986e0e2a8"
+  version = "v0.3.3"
+
+[[projects]]
   branch = "master"
   digest = "1:d6afaeed1502aa28e80a4ed0981d570ad91b2579193404256ce672ed0a609e0d"
   name = "github.com/beorn7/perks"
@@ -47,6 +55,14 @@
   revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
 
 [[projects]]
+  digest = "1:664d37ea261f0fc73dd17f4a1f5f46d01fbb0b0d75f6375af064824424109b7d"
+  name = "github.com/gorilla/handlers"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7e0847f9db758cdebd26c149d0ae9d5d0b9c98ce"
+  version = "v1.4.0"
+
+[[projects]]
   digest = "1:3cbc83a159e161c6cf3e64590ae19da29069ecd8d92f9400ab6fda15e93cbc5f"
   name = "github.com/grpc-ecosystem/grpc-gateway"
   packages = [
@@ -88,15 +104,15 @@
   revision = "67f268f20922975c067ed799e4be6bacf152208c"
 
 [[projects]]
-  digest = "1:0078b278781d15c17383324fba9a3d215b4a7d7a4fd001c1297b3ba9013655c3"
+  digest = "1:7ce7694a5d64015aa8f8e3bea14054ca79fca289fc20e026caf89c1ccd12ea72"
   name = "github.com/olivere/elastic"
   packages = [
     "config",
     "uritemplates",
   ]
   pruneopts = "UT"
-  revision = "156bc8f4ccd31cbf7567a0ed3a64335d6767e4b9"
-  version = "v6.2.10"
+  revision = "425e5369a8f054f4f447f7c8ee1bf605f48425ab"
+  version = "v6.2.11"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
@@ -107,12 +123,15 @@
   version = "v0.8.0"
 
 [[projects]]
-  digest = "1:eeb34126dccdbcd596e12f9a42d164247f16cab3472c5641352333730859a524"
+  digest = "1:f43f7e80e273179b98af510dd453d184c7860920d6f9aa5c89e06aed0494a7a8"
   name = "github.com/prometheus/client_golang"
-  packages = ["prometheus"]
+  packages = [
+    "prometheus",
+    "prometheus/internal",
+  ]
   pruneopts = "UT"
-  revision = "967789050ba94deca04a5e84cce8ad472ce313c1"
-  version = "v0.9.0-pre1"
+  revision = "1cafe34db7fdec6022e17e00e1c1ea501022f3e4"
+  version = "v0.9.0"
 
 [[projects]]
   branch = "master"
@@ -124,7 +143,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:63b68062b8968092eb86bedc4e68894bd096ea6b24920faca8b9dcf451f54bb5"
+  digest = "1:c0d39a0cad193ac49b6e24516e0f994b241d7c27142e5a58e8bd13defb2d9ac8"
   name = "github.com/prometheus/common"
   packages = [
     "expfmt",
@@ -132,7 +151,7 @@
     "model",
   ]
   pruneopts = "UT"
-  revision = "c7de2306084e37d54b8be01f3541a8464345e9a5"
+  revision = "bcb74de08d37a417cb6789eec1d6c810040f0470"
 
 [[projects]]
   branch = "master"
@@ -200,15 +219,15 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "146acd28ed5894421fb5aac80ca93bc1b1f46f87"
+  revision = "49bb7cea24b1df9410e1712aa6433dae904ff66a"
 
 [[projects]]
   branch = "master"
-  digest = "1:c2789211d4035eb0843b85958ecf7cb4a5ea91c2d4decee652c94ce898e433cb"
+  digest = "1:0a40b0bdd57a93e741d8557465be3a2edeec408e9b6399586ad65bbe8e355796"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4497e2df6f9e69048a54498c7affbbec3294ad47"
+  revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -280,19 +299,21 @@
   version = "v1.15.0"
 
 [[projects]]
-  digest = "1:733fec180a899cb3ca2aa53b1b6a5fa01563ea8fa7a9529e55ca183f7c6be6e6"
+  digest = "1:54472b7919dc5a9269f9290da4df25740088d9a170b4160feb16f7f951fd3af6"
   name = "gopkg.in/olivere/elastic.v6"
   packages = ["."]
   pruneopts = "UT"
-  revision = "156bc8f4ccd31cbf7567a0ed3a64335d6767e4b9"
-  version = "v6.2.10"
+  revision = "425e5369a8f054f4f447f7c8ee1bf605f48425ab"
+  version = "v6.2.11"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/TV4/graceful",
     "github.com/gogo/protobuf/proto",
     "github.com/golang/snappy",
+    "github.com/gorilla/handlers",
     "github.com/namsral/flag",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/common/model",

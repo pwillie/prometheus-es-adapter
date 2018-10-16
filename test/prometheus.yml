@@ -11,10 +11,10 @@ scrape_configs:
 
   - job_name: 'prometheus-es-adapter'
     static_configs:
-      - targets: ['prometheus-es-adapter:8080']
+      - targets: ['prometheus-es-adapter:8000']
 
 remote_write:
-  - url: http://prometheus-es-adapter:8080/write
+  - url: http://prometheus-es-adapter:8000/write
 
 remote_read:
-  - url: http://prometheus-es-adapter:8080/read
+  - url: http://prometheus-es-adapter:8000/read
