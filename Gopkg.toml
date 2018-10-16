@@ -44,3 +44,11 @@
 [[constraint]]
   name = "gopkg.in/olivere/elastic.v6"
   version = "6.2.10"
+
+[[constraint]]
+  name = "github.com/TV4/graceful"
+  version = "0.3.3"
+
+[[constraint]]
+  name = "github.com/gorilla/handlers"
+  version = "1.4.0"
