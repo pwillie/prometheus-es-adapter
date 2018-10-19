@@ -102,12 +102,15 @@ func main() {
 	}
 	defer writeSvc.Close()
 
-	router := handlers.NewRouter(writeSvc, readSvc)
+	// Create an "admin" listener on 0.0.0.0:9000
+	go http.ListenAndServe(":9000", handlers.NewAdminRouter(client))
 
 	graceful.ListenAndServe(&http.Server{
 		Addr: ":8000",
 		Handler: gorilla.RecoveryHandler(gorilla.PrintRecoveryStack(true))(
-			gorilla.CompressHandler(router),
+			gorilla.CompressHandler(
+				handlers.NewRouter(writeSvc, readSvc),
+			),
 		),
 	})
 	// TODO: graceful shutdown of bulk processor
