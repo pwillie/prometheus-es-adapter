@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/prompb"
 	"go.uber.org/zap"
-	elastic "gopkg.in/olivere/elastic.v6"
+	"gopkg.in/olivere/elastic.v6"
 )
 
 type prometheusSample struct {
@@ -96,9 +96,11 @@ func (svc *WriteService) Write(req []*prompb.TimeSeries) {
 // after is invoked by bulk processor after every commit.
 // The err variable indicates success or failure.
 func (svc *WriteService) after(id int64, requests []elastic.BulkableRequest, response *elastic.BulkResponse, err error) {
-	for _, i := range response.Items {
-		if i["index"].Status != 201 {
-			svc.logger.Error(fmt.Sprintf("%+v", i["index"].Error))
+	if response != nil {
+		for _, i := range response.Items {
+			if i["index"].Status != 201 {
+				svc.logger.Error(fmt.Sprintf("%+v", i["index"].Error))
+			}
 		}
 	}
 }
