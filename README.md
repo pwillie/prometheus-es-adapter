@@ -2,7 +2,17 @@
 
 ## Overview
 
-A read and write adapter for prometheus persistent storage
+A read and write adapter for prometheus persistent storage.
+
+#### Exposed Endpoints
+
+| Port | Path     | Description                                      |
+| ---- | -------- | ------------------------------------------------ |
+| 8000 | /read    | Prometheus remote read endpoint                  |
+| 8000 | /write   | Prometheus remote write endpoint                 |
+| 9000 | /metrics | Surface Prometheus metrics                       |
+| 9000 | /live    | Http probe endpoint to reflect service liveness  |
+| 9000 | /ready   | Http probe endpoint reflecting the connection to and state of the Elasticsearch cluster |
 
 ## Config
 
@@ -26,6 +36,10 @@ A read and write adapter for prometheus persistent storage
 | STATS              | true                  | Expose Prometheus metrics endpoint                                 |
 | VERSION            | false                 | Display version and exit                                           |
 | DEBUG              | false                 | Display extra debug logs                                           |
+
+## Notes
+
+Although *prometheus-es-adapter* will create and rollover Elasticsearch indicies it is expected that a tool such as Elasticsearch Curator will be used to maintain quiescent indicies eg deleting, shrinking and merging old indexes.
 
 ## Requirements
 

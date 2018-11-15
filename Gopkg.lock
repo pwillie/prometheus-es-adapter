@@ -76,6 +76,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:09333ad24b6543ca5635ee2485276aaaab057beea7df06ebfc2a2a76f226dcd2"
+  name = "github.com/heptiolabs/healthcheck"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6ff867650f40c632367411120275478876202233"
+
+[[projects]]
+  branch = "master"
   digest = "1:aa3d8d42865c42626b5c1add193692d045b3188b1479f0a0a88690d21fe20083"
   name = "github.com/mailru/easyjson"
   packages = [
@@ -123,6 +131,7 @@
   version = "v0.8.0"
 
 [[projects]]
+  branch = "master"
   digest = "1:f43f7e80e273179b98af510dd453d184c7860920d6f9aa5c89e06aed0494a7a8"
   name = "github.com/prometheus/client_golang"
   packages = [
@@ -131,7 +140,6 @@
   ]
   pruneopts = "UT"
   revision = "1cafe34db7fdec6022e17e00e1c1ea501022f3e4"
-  version = "v0.9.0"
 
 [[projects]]
   branch = "master"
@@ -219,7 +227,7 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "49bb7cea24b1df9410e1712aa6433dae904ff66a"
+  revision = "04a2e542c03f1d053ab3e4d6e5abcd4b66e2be8e"
 
 [[projects]]
   branch = "master"
@@ -261,7 +269,7 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "UT"
-  revision = "af9cb2a35e7f169ec875002c1829c9b315cddc04"
+  revision = "94acd270e44e65579b9ee3cdab25034d33fed608"
 
 [[projects]]
   digest = "1:ab8e92d746fb5c4c18846b0879842ac8e53b3d352449423d0924a11f1020ae1b"
@@ -314,6 +322,7 @@
     "github.com/gogo/protobuf/proto",
     "github.com/golang/snappy",
     "github.com/gorilla/handlers",
+    "github.com/heptiolabs/healthcheck",
     "github.com/namsral/flag",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/common/model",

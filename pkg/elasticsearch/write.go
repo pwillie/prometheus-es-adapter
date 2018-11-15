@@ -96,9 +96,13 @@ func (svc *WriteService) Write(req []*prompb.TimeSeries) {
 // after is invoked by bulk processor after every commit.
 // The err variable indicates success or failure.
 func (svc *WriteService) after(id int64, requests []elastic.BulkableRequest, response *elastic.BulkResponse, err error) {
-	for _, i := range response.Items {
-		if i["index"].Status != 201 {
-			svc.logger.Error(fmt.Sprintf("%+v", i["index"].Error))
+	if err != nil {
+		svc.logger.Error(err.Error())
+	} else {
+		for _, i := range response.Items {
+			if i["index"].Status != 201 {
+				svc.logger.Error(fmt.Sprintf("%+v", i["index"].Error))
+			}
 		}
 	}
 }
