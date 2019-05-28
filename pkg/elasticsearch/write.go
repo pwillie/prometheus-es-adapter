@@ -29,6 +29,7 @@ type WriteService struct {
 // WriteConfig is used to configure WriteService
 type WriteConfig struct {
 	Alias   string
+	Daily   bool
 	MaxAge  int
 	MaxDocs int
 	MaxSize int
@@ -67,6 +68,7 @@ func (svc *WriteService) Close() error {
 
 // Write will enqueue Prometheus sample data to be batch written to Elasticsearch
 func (svc *WriteService) Write(req []*prompb.TimeSeries) {
+	index := svc.config.Alias
 	for _, ts := range req {
 		metric := make(model.Metric, len(ts.Labels))
 		for _, l := range ts.Labels {
@@ -83,9 +85,12 @@ func (svc *WriteService) Write(req []*prompb.TimeSeries) {
 				v,
 				s.Timestamp,
 			}
+			if svc.config.Daily {
+				index = svc.config.Alias + "-" + time.Unix(s.Timestamp/1000, 0).Format("2006-01-02")
+			}
 			r := elastic.
 				NewBulkIndexRequest().
-				Index(svc.config.Alias).
+				Index(index).
 				Type(sampleType).
 				Doc(sample)
 			svc.processor.Add(r)

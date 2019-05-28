@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,11 +9,15 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
 	"github.com/prometheus/prometheus/prompb"
-	"github.com/pwillie/prometheus-es-adapter/pkg/elasticsearch"
 )
 
-func writeHandler(svc *elasticsearch.WriteService) http.HandlerFunc {
+type writeService interface {
+	Write([]*prompb.TimeSeries)
+}
+
+func writeHandler(svc writeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 		compressed, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -33,14 +38,18 @@ func writeHandler(svc *elasticsearch.WriteService) http.HandlerFunc {
 
 		svc.Write(req.Timeseries)
 		if err != nil {
-			// log.Println("msg", "Error sending samples to remote storage", "err", err, "storage", "num_samples", len(samples))
 			http.Error(w, "Error sending samples to remote storage", http.StatusInternalServerError)
 		}
 	}
 }
 
-func readHandler(svc *elasticsearch.ReadService) http.HandlerFunc {
+type readService interface {
+	Read(context.Context, []*prompb.Query) ([]*prompb.QueryResult, error)
+}
+
+func readHandler(svc readService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 		compressed, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -5,22 +5,21 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.uber.org/zap"
-
 	"github.com/TV4/graceful"
 	gorilla "github.com/gorilla/handlers"
 	"github.com/namsral/flag"
 	"github.com/pwillie/prometheus-es-adapter/pkg/elasticsearch"
 	"github.com/pwillie/prometheus-es-adapter/pkg/handlers"
 	"github.com/pwillie/prometheus-es-adapter/pkg/logger"
+	"go.uber.org/zap"
 	elastic "gopkg.in/olivere/elastic.v6"
 )
 
 var (
-		// Build number populated during build
-		Build  string
-		// Git commit number populated during build
-		Commit string
+	// Build number populated during build
+	Build string
+	// Commit hash populated during build
+	Commit string
 )
 
 func main() {
@@ -33,6 +32,7 @@ func main() {
 		batchMaxDocs  = flag.Int("es_batch_max_docs", 1000, "Max items for bulk Elasticsearch insert operation")
 		batchMaxSize  = flag.Int("es_batch_max_size", 4096, "Max size in bytes for bulk Elasticsearch insert operation")
 		indexAlias    = flag.String("es_alias", "prom-metrics", "Elasticsearch alias pointing to active write index")
+		indexDaily    = flag.Bool("es_index_daily", false, "Create daily indexes and disable index management service")
 		indexShards   = flag.Int("es_index_shards", 5, "Number of Elasticsearch shards to create per index")
 		indexReplicas = flag.Int("es_index_replicas", 1, "Number of Elasticsearch replicas to create per index")
 		indexMaxAge   = flag.String("es_index_max_age", "7d", "Max age of Elasticsearch index before rollover")
@@ -65,17 +65,25 @@ func main() {
 	}
 	defer client.Stop()
 
-	indexCfg := &elasticsearch.IndexConfig{
+	err = elasticsearch.EnsureIndexTemplate(ctx, client, &elasticsearch.IndexTemplateConfig{
 		Alias:    *indexAlias,
-		MaxAge:   *indexMaxAge,
-		MaxDocs:  *indexMaxDocs,
-		MaxSize:  *indexMaxSize,
 		Shards:   *indexShards,
 		Replicas: *indexReplicas,
-	}
-	_, err = elasticsearch.NewIndexService(ctx, log, client, indexCfg)
+	})
 	if err != nil {
-		log.Fatal("Failed to create indexer", zap.Error(err))
+		log.Fatal("Failed to create index template", zap.Error(err))
+	}
+
+	if !*indexDaily {
+		_, err = elasticsearch.NewIndexService(ctx, log, client, &elasticsearch.IndexConfig{
+			Alias:   *indexAlias,
+			MaxAge:  *indexMaxAge,
+			MaxDocs: *indexMaxDocs,
+			MaxSize: *indexMaxSize,
+		})
+		if err != nil {
+			log.Fatal("Failed to create indexer", zap.Error(err))
+		}
 	}
 
 	readCfg := &elasticsearch.ReadConfig{
@@ -86,6 +94,7 @@ func main() {
 
 	writeCfg := &elasticsearch.WriteConfig{
 		Alias:   *indexAlias,
+		Daily:   *indexDaily,
 		MaxAge:  *batchMaxAge,
 		MaxDocs: *batchMaxDocs,
 		MaxSize: *batchMaxSize,

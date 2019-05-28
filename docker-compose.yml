@@ -49,6 +49,7 @@ services:
       - '8001:9000'
     environment:
       - ES_URL=http://elasticsearch:9200
+      - ES_INDEX_DAILY=true
       - ES_INDEX_SHARDS=1
       - ES_INDEX_REPLICAS=0
       - ES_INDEX_MAX_DOCS=2000

@@ -26,6 +26,7 @@ A read and write adapter for prometheus persistent storage.
 | ES_BATCH_MAX_DOCS  | 1000                  | Max items for bulk Elasticsearch insert operation                  |
 | ES_BATCH_MAX_SIZE  | 4096                  | Max size in bytes for bulk Elasticsearch insert operation          |
 | ES_ALIAS           | prom-metrics          | Elasticsearch alias pointing to active write index                 |
+| ES_INDEX_DAILY     | false                 | Create daily indexes and disable index rollover                    |
 | ES_INDEX_SHARDS    | 5                     | Number of Elasticsearch shards to create per index                 |
 | ES_INDEX_REPLICAS  | 1                     | Number of Elasticsearch replicas to create per index               |
 | ES_INDEX_MAX_AGE   | 7d                    | Max age of Elasticsearch index before rollover                     |
