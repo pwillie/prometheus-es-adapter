@@ -1,59 +1,67 @@
-.PHONY: build build-alpine clean test help default
+#!/usr/bin/make -f
+# -*- makefile -*-
 
-BIN_NAME=prometheus-es-adapter
+P = $(shell basename $(CURDIR))
+M = $(shell printf "\033[34;1m▶\033[0m")
 
-VERSION ?= $(shell git describe --tags 2>/dev/null || echo "nil")
-GIT_COMMIT=$(shell git rev-parse HEAD)
-GIT_DIRTY=$(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
-IMAGE_NAME := "pwillie/prometheus-es-adapter"
+# default config for the build step
+CGO_ENABLED ?= 0
+GOOS ?= linux
+GOARCH ?= amd64
 
-default: test
+BUILD_NUMBER ?= local
+COMMIT ?= $(shell git rev-parse --short HEAD)$(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 
+.PHONY: help
 help:
-	@echo 'Management commands for prometheus-es-adapter:'
+	@echo 'Management commands for $(P):'
 	@echo
 	@echo 'Usage:'
 	@echo '    make build           Compile the project.'
-	@echo '    make build-alpine    Compile optimized for alpine linux.'
-	@echo '    make package         Build final docker image with just the go binary inside'
-	@echo '    make tag             Tag image created by package with latest, git commit and version'
-	@echo '    make test            Run tests on a compiled project.'
-	@echo '    make push            Push tagged images to registry'
-	@echo '    make clean           Clean the directory tree.'
+	@echo '    make revendor        Update go modules and tidy vendor directory.'
+	@echo '    make test            Vet and test project.'
+	@echo
+	@echo '    make up              Start services defined in docker-compose.yml.'
+	@echo '    make reup            Rebuild and recreate services defined in docker-compose.yml.'
+	@echo '    make down            Stop and cleanup services defined in docker-compose.yml.'
+	@echo '    make logs            Tail docker logs of services defined in docker-compose.yml.'
 	@echo
 
-build:
-	@echo "building ${BIN_NAME} ${VERSION}"
-	@echo "GOPATH=${GOPATH}"
-	go build -ldflags "-X main.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X main.VersionPrerelease=DEV" -o bin/${BIN_NAME} cmd/adapter/*.go
+build: ; $(info $(M) Running build...)
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
+	go build -mod=vendor \
+	-ldflags '-w -extldflags "-static" -X main.Commit=$(COMMIT) -X main.Build=$(BUILD_NUMBER)' \
+	-o release/linux/amd64/prometheus-es-adapter cmd/adapter/main.go
 
-build-alpine:
-	@echo "building ${BIN_NAME} ${VERSION}"
-	@echo "GOPATH=${GOPATH}"
-	go build -ldflags '-w -extldflags "-static" -X main.Version=${VERSION} -X main.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X main.VersionPrerelease=VersionPrerelease=RC' -o bin/${BIN_NAME} cmd/adapter/*.go
+.PHONY: revendor
+revendor: ; $(info $(M) Updating vendor dependencies...)
+	go get -u
+	go mod tidy
+	go mod vendor
 
-package:
-	@echo "building image ${BIN_NAME} ${VERSION} $(GIT_COMMIT)"
-	docker build --build-arg VERSION=${VERSION} --build-arg GIT_COMMIT=$(GIT_COMMIT) -t $(IMAGE_NAME):local .
+.PHONY: test
+test: ; $(info $(M) Running tests...)
+	go vet -mod=vendor ./...
+	go test -mod=vendor -cover -coverprofile=coverage.out ./...
 
-tag: 
-	@echo "Tagging: latest ${VERSION} $(GIT_COMMIT)"
-	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):$(GIT_COMMIT)
-	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):${VERSION}
-	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):latest
+.PHONY: race
+race:
+	go test -mod=vendor -race ./...
 
-push: tag
-	@echo "Pushing docker image to registry: latest ${VERSION} $(GIT_COMMIT)"
-	docker push $(IMAGE_NAME):$(GIT_COMMIT)
-	docker push $(IMAGE_NAME):${VERSION}
-	docker push $(IMAGE_NAME):latest
+########## docker and docker-compose related commands follow ##########
 
-clean:
-	@test ! -e bin/${BIN_NAME} || rm bin/${BIN_NAME}
+.PHONY: up
+up:
+	docker-compose -f docker-compose.yml up -d
 
-test:
-	go vet ./...
-	go test -cover -coverprofile=coverage.out -v ./...
+.PHONY: reup
+reup: build
+	docker-compose -f docker-compose.yml up --build -d
 
-watch:
-	watcher -run github.com/pwillie/prometheus-es-adapter/cmd/adapter -watch github.com/pwillie/prometheus-es-adapter
+.PHONY: down
+down:
+	docker-compose -f docker-compose.yml down
+
+.PHONY: logs
+logs:
+	docker-compose -f docker-compose.yml logs -f

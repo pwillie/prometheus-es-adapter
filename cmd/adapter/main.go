@@ -16,6 +16,13 @@ import (
 	elastic "gopkg.in/olivere/elastic.v6"
 )
 
+var (
+		// Build number populated during build
+		Build  string
+		// Git commit number populated during build
+		Commit string
+)
+
 func main() {
 	var (
 		url           = flag.String("es_url", "http://localhost:9200", "Elasticsearch URL.")
@@ -34,24 +41,13 @@ func main() {
 		searchMaxDocs = flag.Int("es_search_max_docs", 1000, "Max number of docs returned for Elasticsearch search operation")
 		sniffEnabled  = flag.Bool("es_sniff", false, "Enable Elasticsearch sniffing")
 		statsEnabled  = flag.Bool("stats", true, "Expose Prometheus metrics endpoint")
-		versionFlag   = flag.Bool("version", false, "Version")
 		debug         = flag.Bool("debug", false, "Debug logging")
 	)
 	flag.Parse()
 
 	log := logger.NewLogger(*debug)
 
-	if *versionFlag {
-		fmt.Println("Git Commit:", GitCommit)
-		fmt.Println("Version:", Version)
-		if VersionPrerelease != "" {
-			fmt.Println("Version PreRelease:", VersionPrerelease)
-		}
-		return
-	}
-
-	log.Info(fmt.Sprintf("Starting commit: %+v, version: %+v, prerelease: %+v",
-		GitCommit, Version, VersionPrerelease))
+	log.Info(fmt.Sprintf("Starting commit: %+v, build: %+v", Commit, Build))
 
 	if *url == "" {
 		log.Fatal("missing url")

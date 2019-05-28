@@ -17,7 +17,7 @@ import (
 // IndicesSyncedFlushService performs a normal flush, then adds a generated
 // unique marked (sync_id) to all shards.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.4/indices-synced-flush.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.7/indices-synced-flush.html
 // for details.
 type IndicesSyncedFlushService struct {
 	client            *Client
@@ -143,7 +143,7 @@ func (s *IndicesSyncedFlushService) Do(ctx context.Context) (*IndicesSyncedFlush
 
 // IndicesSyncedFlushResponse is the outcome of a synched flush call.
 type IndicesSyncedFlushResponse struct {
-	Shards shardsInfo                                 `json:"_shards"`
+	Shards *ShardsInfo                                `json:"_shards"`
 	Index  map[string]*IndicesShardsSyncedFlushResult `json:"-"`
 
 	// TODO Add information about the indices here from the root level

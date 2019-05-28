@@ -1,5 +1,8 @@
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
+global:
+  scrape_interval: 10s
+
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:

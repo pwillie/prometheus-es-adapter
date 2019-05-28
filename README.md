@@ -34,7 +34,6 @@ A read and write adapter for prometheus persistent storage.
 | ES_SEARCH_MAX_DOCS | 1000                  | Max number of docs returned for Elasticsearch search operation     |
 | ES_SNIFF           | false                 | Enable Elasticsearch sniffing                                      |
 | STATS              | true                  | Expose Prometheus metrics endpoint                                 |
-| VERSION            | false                 | Display version and exit                                           |
 | DEBUG              | false                 | Display extra debug logs                                           |
 
 ## Notes
