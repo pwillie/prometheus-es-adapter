@@ -101,7 +101,7 @@ func (svc *ReadService) createTimeseries(results *elastic.SearchHits) ([]*prompb
 			}
 			tsMap[fingerprint] = ts
 		}
-		ts.Samples = append(ts.Samples, &prompb.Sample{
+		ts.Samples = append(ts.Samples, prompb.Sample{
 			Value:     s.Value,
 			Timestamp: s.Timestamp,
 		})

@@ -1,0 +1,70 @@
+version: '3.3'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    environment:
+      ES_NODE_NAME: elasticsearch
+      discovery.type: single-node
+
+  ui-cerebro:
+    image: ludekvesely/elasticsearch-cerebro
+    links:
+      - elasticsearch
+    ports:
+      - '9000:9000'
+    environment:
+      ELASTICSEARCH_HOST: http://elasticsearch:9200
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.4.2
+    links:
+      - elasticsearch
+    ports:
+      - '5601:5601'
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - '9090:9090'
+    # command:
+    #   - --config.file=/etc/prometheus/prometheus.yml
+    #   - --storage.tsdb.path=/prometheus
+    #   - --storage.tsdb.retention=1d
+    #   - --web.console.libraries=/usr/share/prometheus/console_libraries
+    #   - --web.console.templates=/usr/share/prometheus/consoles
+    # command: '-h'
+    volumes:
+      - ./test/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  prometheus-es-adapter:
+    build:
+      context: .
+    ports:
+      - '8000:8000'
+      - '8001:9000'
+    environment:
+      - ES_URL=http://elasticsearch:9200
+      - ES_INDEX_DAILY=true
+      - ES_INDEX_SHARDS=1
+      - ES_INDEX_REPLICAS=0
+      - ES_INDEX_MAX_DOCS=2000
+      - DEBUG=true
+
+  node-exporter:
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - 9100:9100

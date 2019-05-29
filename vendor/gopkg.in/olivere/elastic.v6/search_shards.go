@@ -15,7 +15,7 @@ import (
 )
 
 // SearchShardsService returns the indices and shards that a search request would be executed against.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-shards.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.7/search-shards.html
 type SearchShardsService struct {
 	client            *Client
 	pretty            bool
@@ -169,12 +169,12 @@ func (s *SearchShardsService) Do(ctx context.Context) (*SearchShardsResponse, er
 
 // SearchShardsResponse is the response of SearchShardsService.Do.
 type SearchShardsResponse struct {
-	Nodes   map[string]interface{} `json:"nodes"`
-	Indices map[string]interface{} `json:"indices"`
-	Shards  [][]ShardsInfo         `json:"shards"`
+	Nodes   map[string]interface{}              `json:"nodes"`
+	Indices map[string]interface{}              `json:"indices"`
+	Shards  [][]*SearchShardsResponseShardsInfo `json:"shards"`
 }
 
-type ShardsInfo struct {
+type SearchShardsResponseShardsInfo struct {
 	Index                    string          `json:"index"`
 	Node                     string          `json:"node"`
 	Primary                  bool            `json:"primary"`

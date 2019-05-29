@@ -10,8 +10,7 @@ import (
 
 func healthzHandler(client *elastic.Client) http.Handler {
 	health := healthcheck.NewHandler()
-	health.AddReadinessCheck("elasticsearch",
-		esCheck(client))
+	health.AddReadinessCheck("elasticsearch", esCheck(client))
 	return health
 }
 

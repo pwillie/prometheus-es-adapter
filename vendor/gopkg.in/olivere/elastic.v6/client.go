@@ -26,7 +26,7 @@ import (
 
 const (
 	// Version is the current version of Elastic.
-	Version = "6.2.11"
+	Version = "6.2.18"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -158,7 +158,7 @@ type Client struct {
 //
 // If the sniffer is enabled (the default), the new client then sniffes
 // the cluster via the Nodes Info API
-// (see https://www.elastic.co/guide/en/elasticsearch/reference/6.2/cluster-nodes-info.html#cluster-nodes-info).
+// (see https://www.elastic.co/guide/en/elasticsearch/reference/6.7/cluster-nodes-info.html#cluster-nodes-info).
 // It uses the URLs specified by the caller. The caller is responsible
 // to only pass a list of URLs of nodes that belong to the same cluster.
 // This sniffing process is run on startup and periodically.
@@ -1142,7 +1142,7 @@ func (c *Client) startupHealthcheck(parentCtx context.Context, timeout time.Dura
 			if basicAuth {
 				req.SetBasicAuth(basicAuthUsername, basicAuthPassword)
 			}
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			ctx, cancel := context.WithTimeout(parentCtx, timeout)
 			defer cancel()
 			req = req.WithContext(ctx)
 			res, err := c.c.Do(req)
@@ -1456,7 +1456,7 @@ func (c *Client) BulkProcessor() *BulkProcessorService {
 
 // Reindex copies data from a source index into a destination index.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-reindex.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.7/docs-reindex.html
 // for details on the Reindex API.
 func (c *Client) Reindex() *ReindexService {
 	return NewReindexService(c)
@@ -1627,7 +1627,7 @@ func (c *Client) Flush(indices ...string) *IndicesFlushService {
 
 // SyncedFlush performs a synced flush.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.4/indices-synced-flush.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.7/indices-synced-flush.html
 // for more details on synched flushes and how they differ from a normal
 // Flush.
 func (c *Client) SyncedFlush(indices ...string) *IndicesSyncedFlushService {
@@ -1815,6 +1815,11 @@ func (c *Client) SnapshotCreateRepository(repository string) *SnapshotCreateRepo
 	return NewSnapshotCreateRepositoryService(c).Repository(repository)
 }
 
+// SnapshotDelete deletes a snapshot in a snapshot repository.
+func (c *Client) SnapshotDelete(repository string, snapshot string) *SnapshotDeleteService {
+	return NewSnapshotDeleteService(c).Repository(repository).Snapshot(snapshot)
+}
+
 // SnapshotDeleteRepository deletes a snapshot repository.
 func (c *Client) SnapshotDeleteRepository(repositories ...string) *SnapshotDeleteRepositoryService {
 	return NewSnapshotDeleteRepositoryService(c).Repository(repositories...)
@@ -1823,6 +1828,11 @@ func (c *Client) SnapshotDeleteRepository(repositories ...string) *SnapshotDelet
 // SnapshotGetRepository gets a snapshot repository.
 func (c *Client) SnapshotGetRepository(repositories ...string) *SnapshotGetRepositoryService {
 	return NewSnapshotGetRepositoryService(c).Repository(repositories...)
+}
+
+// SnapshotGet lists snapshot for a repository.
+func (c *Client) SnapshotGet(repository string) *SnapshotGetService {
+	return NewSnapshotGetService(c).Repository(repository)
 }
 
 // SnapshotVerifyRepository verifies a snapshot repository.
@@ -1848,7 +1858,50 @@ func (c *Client) DeleteScript() *DeleteScriptService {
 	return NewDeleteScriptService(c)
 }
 
-// -- X-Pack --
+// -- X-Pack General --
+
+// XPackInfo gets information on the xpack plugins enabled on the cluster
+
+func (c *Client) XPackInfo() *XPackInfoService {
+	return NewXPackInfoService(c)
+}
+
+// -- X-Pack Security --
+
+// XPackSecurityGetRoleMapping gets a role mapping.
+func (c *Client) XPackSecurityGetRoleMapping(roleMappingName string) *XPackSecurityGetRoleMappingService {
+	return NewXPackSecurityGetRoleMappingService(c).Name(roleMappingName)
+}
+
+// XPackSecurityPutRoleMapping adds a role mapping.
+func (c *Client) XPackSecurityPutRoleMapping(roleMappingName string) *XPackSecurityPutRoleMappingService {
+	return NewXPackSecurityPutRoleMappingService(c).Name(roleMappingName)
+}
+
+// XPackSecurityDeleteRoleMapping deletes a role mapping.
+func (c *Client) XPackSecurityDeleteRoleMapping(roleMappingName string) *XPackSecurityDeleteRoleMappingService {
+	return NewXPackSecurityDeleteRoleMappingService(c).Name(roleMappingName)
+}
+
+// XPackSecurityGetRole gets a role.
+func (c *Client) XPackSecurityGetRole(roleName string) *XPackSecurityGetRoleService {
+	return NewXPackSecurityGetRoleService(c).Name(roleName)
+}
+
+// XPackSecurityPutRole adds a role.
+func (c *Client) XPackSecurityPutRole(roleName string) *XPackSecurityPutRoleService {
+	return NewXPackSecurityPutRoleService(c).Name(roleName)
+}
+
+// XPackSecurityDeleteRole deletes a role.
+func (c *Client) XPackSecurityDeleteRole(roleName string) *XPackSecurityDeleteRoleService {
+	return NewXPackSecurityDeleteRoleService(c).Name(roleName)
+}
+
+// TODO: Clear role cache API
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-clear-role-cache.html
+
+// -- X-Pack Watcher --
 
 // XPackWatchPut adds a watch.
 func (c *Client) XPackWatchPut(watchId string) *XPackWatcherPutWatchService {

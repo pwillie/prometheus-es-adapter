@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-
 	elastic "gopkg.in/olivere/elastic.v6"
 )
 
@@ -22,10 +21,15 @@ type IndexService struct {
 
 // IndexConfig is used to configure IndexService
 type IndexConfig struct {
+	Alias   string
+	MaxAge  string
+	MaxDocs int64
+	MaxSize string
+}
+
+// IndexTemplateConfig is used to resolve template
+type IndexTemplateConfig struct {
 	Alias    string
-	MaxAge   string
-	MaxDocs  int64
-	MaxSize  string
 	Shards   int
 	Replicas int
 }
@@ -39,9 +43,6 @@ func NewIndexService(ctx context.Context, logger *zap.Logger, client *elastic.Cl
 		config: config,
 		logger: logger,
 	}
-	if err := svc.createIndexTemplate(); err != nil {
-		return nil, err
-	}
 	if err := svc.createIndex(); err != nil {
 		return nil, err
 	}
@@ -49,16 +50,16 @@ func NewIndexService(ctx context.Context, logger *zap.Logger, client *elastic.Cl
 	return svc, nil
 }
 
-func (svc *IndexService) createIndexTemplate() error {
+func EnsureIndexTemplate(ctx context.Context, client *elastic.Client, config *IndexTemplateConfig) error {
 	var buf bytes.Buffer
 	t := template.Must(template.New("template").Parse(indexTemplate))
-	err := t.Execute(&buf, svc.config)
+	err := t.Execute(&buf, config)
 	if err != nil {
 		return fmt.Errorf("executing template: %s", err)
 	}
 	payload := buf.String()
 
-	_, err = svc.client.IndexPutTemplate(svc.config.Alias).BodyString(payload).Do(svc.ctx)
+	_, err = client.IndexPutTemplate(config.Alias).BodyString(payload).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to create index template: %s", err)
 	}
