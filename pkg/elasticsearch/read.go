@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/prompb"
 	"go.uber.org/zap"
 	elastic "gopkg.in/olivere/elastic.v6"
@@ -103,7 +104,7 @@ func (svc *ReadService) createTimeseries(results *elastic.SearchHits) ([]*prompb
 		}
 		ts.Samples = append(ts.Samples, prompb.Sample{
 			Value:     s.Value,
-			Timestamp: s.Timestamp,
+			Timestamp: timestamp.FromTime(s.Timestamp),
 		})
 	}
 	ret := make([]*prompb.TimeSeries, 0, len(tsMap))

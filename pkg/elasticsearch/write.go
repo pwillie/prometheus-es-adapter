@@ -8,7 +8,9 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/prompb"
+
 	"go.uber.org/zap"
 	elastic "gopkg.in/olivere/elastic.v6"
 )
@@ -16,7 +18,7 @@ import (
 type prometheusSample struct {
 	Labels    model.Metric `json:"label"`
 	Value     float64      `json:"value"`
-	Timestamp int64        `json:"timestamp"`
+	Timestamp time.Time    `json:"timestamp"`
 }
 
 // WriteService will proxy Prometheus write requests to Elasticsearch
@@ -83,10 +85,10 @@ func (svc *WriteService) Write(req []*prompb.TimeSeries) {
 			sample := prometheusSample{
 				metric,
 				v,
-				s.Timestamp,
+				timestamp.Time(s.Timestamp),
 			}
 			if svc.config.Daily {
-				index = svc.config.Alias + "-" + time.Unix(s.Timestamp/1000, 0).Format("2006-01-02")
+				index = svc.config.Alias + "-" + time.Unix(s.Timestamp/1000, 0).Format("2006.1.2")
 			}
 			r := elastic.
 				NewBulkIndexRequest().
