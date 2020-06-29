@@ -1,5 +1,7 @@
 # prometheus-es-adapter
 
+*Please note:* This project is no longer under active development.
+
 ## Overview
 
 A read and write adapter for prometheus persistent storage.
